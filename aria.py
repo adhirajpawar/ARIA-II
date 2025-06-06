@@ -1,16 +1,14 @@
-# A.R.I.A (AI-powered Research and Interpretation Assistant)
 import streamlit as st
-import os
 import io
 import pandas as pd
+import os
 from PyPDF2 import PdfReader
 from pptx import Presentation
 import docx
 import xlrd
 from bs4 import BeautifulSoup
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import GooglePalmEmbeddings
-from langchain_community.llms import GooglePalm
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
@@ -22,23 +20,23 @@ from langchain_core.messages import HumanMessage, AIMessage
 import logging
 from typing import Union
 import speech_recognition as sr
-from datetime import datetime
-import spacy  # Added for Named Entity Recognition (NER)
-from config import GOOGLE_API_KEY
+import spacy
+from config import TOGETHER_API_KEY 
 import zipfile
 import rarfile
 import markdown
 from textract import process
 from transformers import pipeline
-from langchain_community.chat_models import ChatOllama 
+from langchain_community.chat_models import ChatOllama
+from langchain_together import Together 
 
-os.environ['GOOGLE_API_KEY'] = GOOGLE_API_KEY # Added for Google API Key for Google Palm 
+os.environ['TOGETHER_API_KEY'] = TOGETHER_API_KEY  
 
-nlp = spacy.load("en_core_web_sm") # Added for Named Entity Recognition (NER) 
+nlp = spacy.load("en_core_web_sm")
 
-def extract_text(file): # Added for various file types text extraction
+def extract_text(file): 
     text = ""
-    file_extension = file.name.split(".")[-1].lower()
+    file_extension = file.name.split(".")[-1].lower() 
     if file_extension == "pdf":
         text = extract_text_from_pdf(file)
     elif file_extension == "pptx":
@@ -93,17 +91,17 @@ def extract_text(file): # Added for various file types text extraction
 def extract_text_from_xml(xml_file):
     text = ""
     try:
-        soup = BeautifulSoup(xml_file, 'xml')
+        soup = BeautifulSoup(xml_file, 'xml') # BeautifulSoup is used here to parse the XML file
         text = soup.get_text()
     except Exception as e:
         handle_file_processing_error("XML", e)
     return text
 
 # Function to extract text from a PDF file
-def extract_text_from_pdf(pdf_file):
+def extract_text_from_pdf(pdf_file): 
     text = ""
     try:
-        pdf_reader = PdfReader(pdf_file)
+        pdf_reader = PdfReader(pdf_file) # # PyPDF2 is used here to read the PDF file
         for page in pdf_reader.pages:
             text += page.extract_text()
     except Exception as e:
@@ -114,7 +112,7 @@ def extract_text_from_pdf(pdf_file):
 def extract_text_from_ppt(ppt_file):
     text = ""
     try:
-        presentation = Presentation(ppt_file)
+        presentation = Presentation(ppt_file) # pptx is used here to read the PowerPoint file
         for slide in presentation.slides:
             for shape in slide.shapes:
                 if hasattr(shape, "text"):
@@ -297,10 +295,10 @@ def extract_text_from_rust(rs_file):
 def extract_text_from_image(image_file):
     text = ""
     try:
-        image = cv2.imdecode(np.frombuffer(image_file.read(), np.uint8), cv2.IMREAD_COLOR)
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        text = pytesseract.image_to_string(gray)
-    except Exception as e:
+        image = cv2.imdecode(np.frombuffer(image_file.read(), np.uint8), cv2.IMREAD_COLOR) # Read the image from the file
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) # Convert the image to grayscale for OCR
+        text = pytesseract.image_to_string(gray) # Extract text from the grayscale image
+    except Exception as e: 
         handle_file_processing_error("image", e)
     return text
 
@@ -348,7 +346,7 @@ def extract_text_from_rar(rar_file):
     return text
 
 # Function to handle file processing errors
-def handle_file_processing_error(file_type: str, error: Exception):
+def handle_file_processing_error(file_type: str, error: Exception): # 
     st.error(f"Error processing {file_type} file: {error}")
     logger.exception(f"Error processing {file_type} file", exc_info=True)
 
@@ -361,7 +359,7 @@ def handle_model_interaction_error(error: Exception):
 logger = logging.getLogger(__name__)
 
 # Function to handle input validation errors
-def validate_user_input(user_input: Union[st.file_uploader, str]):
+def validate_user_input(user_input: Union[st.file_uploader, str]): 
     if not user_input:
         st.warning("Please provide valid input.")
         return False
@@ -376,8 +374,8 @@ def log_event(event: str):
     logger.info(event)
 
 def main():
-    st.set_page_config(page_title="A.R.I.A 🚀", layout="wide")
-    st.header("AI-powered Research and Interpretation Assistant")
+    st.set_page_config(page_title="M.A.R.S 🚀", layout="wide")
+    st.header("Multi-model AI Research System")
     user_question = st.chat_input("Ask Questions about Everything")
 
     if "conversation" not in st.session_state or not st.session_state.conversation:
@@ -385,8 +383,8 @@ def main():
         st.session_state.chat_history = []
         st.session_state.files_uploaded = False
 
-    with st.sidebar:
-        st.title("A.R.I.A")
+    with st.sidebar: 
+        st.title("M.A.R.S")
         model_mode = st.toggle("Online Mode")
 
         st.subheader("Upload your Files here")
@@ -427,29 +425,24 @@ def main():
         st.session_state.files_uploaded = False
 
 
-
-# Function to split text into chunks
 def get_text_chunks(text):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=256)
     chunks = text_splitter.split_text(text)
-    return chunks
-    
+    return chunks 
 # Function to create a vector store
 def get_vector_store(text_chunks):
-    embeddings = GooglePalmEmbeddings()
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
     return vector_store
 
-# Function to create a conversational chain using Sol
 def get_conversational_chain_offline(vector_store):
-    sol_model = ChatOllama(model="Sol")  # Initialize the ChatOllama instance with the Sol model
+    sol_model = ChatOllama(model="Sol")  # Initialize the ChatOllama instance with the Sol model (Made for MARS)
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
     conversation_chain = ConversationalRetrievalChain.from_llm(llm=sol_model, retriever=vector_store.as_retriever(), memory=memory)
     return conversation_chain
 
-# Function to create a conversational chain using Palm
 def get_conversational_chain_online(vector_store):
-    llm = GooglePalm()
+    llm = Together(model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", temperature=0.7, max_tokens=1024)
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
     conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=vector_store.as_retriever(), memory=memory)
     return conversation_chain
@@ -458,15 +451,15 @@ def user_input(user_question):
     if st.session_state.conversation:
         try:
             # Check if the user's message contains a feedback mention
-            is_feedback = "@aria" in user_question.lower()
-            is_feedback = is_feedback or "@aria" in user_question.upper()
+            is_feedback = "@mars" in user_question.lower()
+            is_feedback = is_feedback or "@mars" in user_question.upper()
             
             # If the message contains a feedback mention, handle it
             if is_feedback:
                 handle_user_feedback(user_question)
             else:
                 # Otherwise, proceed with the conversation
-                response = st.session_state.conversation({'question': user_question})
+                response = st.session_state.conversation.invoke({'question': user_question})
                 if 'chat_history' in response:
                     st.session_state.chat_history = response['chat_history']
                 if st.session_state.chat_history:
@@ -496,5 +489,3 @@ def user_input(user_question):
 # Running the main function
 if __name__ == "__main__":
     main()
-
-
