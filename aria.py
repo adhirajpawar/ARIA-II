@@ -374,8 +374,8 @@ def log_event(event: str):
     logger.info(event)
 
 def main():
-    st.set_page_config(page_title="M.A.R.S 🚀", layout="wide")
-    st.header("Multi-model AI Research System")
+    st.set_page_config(page_title="A.R.I.A 🚀", layout="wide")
+    st.header("AI-powered Research and Interpretation Assistant")
     user_question = st.chat_input("Ask Questions about Everything")
 
     if "conversation" not in st.session_state or not st.session_state.conversation:
@@ -384,7 +384,7 @@ def main():
         st.session_state.files_uploaded = False
 
     with st.sidebar: 
-        st.title("M.A.R.S")
+        st.title("A.R.I.A")
         model_mode = st.toggle("Online Mode")
 
         st.subheader("Upload your Files here")
@@ -436,7 +436,7 @@ def get_vector_store(text_chunks):
     return vector_store
 
 def get_conversational_chain_offline(vector_store):
-    sol_model = ChatOllama(model="Sol")  # Initialize the ChatOllama instance with the Sol model (Made for MARS)
+    sol_model = ChatOllama(model="llama3")  # Initialize the ChatOllama instance with the Sol model (Made for ARIA)
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
     conversation_chain = ConversationalRetrievalChain.from_llm(llm=sol_model, retriever=vector_store.as_retriever(), memory=memory)
     return conversation_chain
@@ -451,8 +451,8 @@ def user_input(user_question):
     if st.session_state.conversation:
         try:
             # Check if the user's message contains a feedback mention
-            is_feedback = "@mars" in user_question.lower()
-            is_feedback = is_feedback or "@mars" in user_question.upper()
+            is_feedback = "@aria" in user_question.lower()
+            is_feedback = is_feedback or "@aria" in user_question.upper()
             
             # If the message contains a feedback mention, handle it
             if is_feedback:

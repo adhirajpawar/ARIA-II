@@ -45,4 +45,4 @@ streamlit==1.31.1
 transformers==4.38.2
 xlrd==1.2.0
 
-
+langchain-huggingface
