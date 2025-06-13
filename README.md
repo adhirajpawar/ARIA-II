@@ -1,9 +1,5 @@
 # A.R.I.A (AI-powered Research and Interpretation Assistant)
 
-# Try It Now
-
-Experience the power of A.R.I.A yourself by visiting [A.R.I.A Web App](https://m-a-r-s.streamlit.app/).
-
 ## Experience the power of A.R.I.A - like a chatbot on steroids, but composed for brilliance.
 
 ## Introduction

@@ -28,7 +28,7 @@ import markdown
 from textract import process
 from transformers import pipeline
 from langchain_community.chat_models import ChatOllama
-from langchain_together import Together 
+from langchain_together import Together
 
 os.environ['TOGETHER_API_KEY'] = TOGETHER_API_KEY  
 
@@ -199,31 +199,55 @@ def extract_text_from_audio(audio_file):
     return text
 
 # Function to extract text from a JSON file
+# def extract_text_from_json(json_file):
+#     text = ""
+#     try:
+#         with open(json_file.name, "r") as f:
+#             text = f.read()
+#     except Exception as e:
+#         handle_file_processing_error("JSON", e)
+#     return text
 def extract_text_from_json(json_file):
     text = ""
     try:
-        with open(json_file.name, "r") as f:
-            text = f.read()
+        text = json_file.read().decode("utf-8")
     except Exception as e:
         handle_file_processing_error("JSON", e)
     return text
 
+
 # Function to extract text from a SQL file
+# def extract_text_from_sql(sql_file):
+#     text = ""
+#     try:
+#         with open(sql_file.name, "r") as f:
+#             text = f.read()
+#     except Exception as e:
+#         handle_file_processing_error("SQL", e)
+#     return text
 def extract_text_from_sql(sql_file):
     text = ""
     try:
-        with open(sql_file.name, "r") as f:
-            text = f.read()
+        text = sql_file.read().decode("utf-8")
     except Exception as e:
         handle_file_processing_error("SQL", e)
     return text
 
+
 # Function to extract text from a TXT file
+# def extract_text_from_txt(txt_file):
+#     text = ""
+#     try:
+#         with open(txt_file.name, "r") as f:
+#             text = f.read()
+#     except Exception as e:
+#         handle_file_processing_error("TXT", e)
+#     return text
+
 def extract_text_from_txt(txt_file):
     text = ""
     try:
-        with open(txt_file.name, "r") as f:
-            text = f.read()
+        text = txt_file.read().decode("utf-8")
     except Exception as e:
         handle_file_processing_error("TXT", e)
     return text
@@ -316,7 +340,7 @@ def extract_text_from_md(md_file):
 def extract_text_from_tex(tex_file):
     text = ""
     try:
-        text = process(tex_file.name).decode("utf-8")
+        text = process(tex_file).decode("utf-8")
     except Exception as e:
         handle_file_processing_error("LaTeX", e)
     return text
